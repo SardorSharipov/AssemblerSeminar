@@ -1,0 +1,85 @@
+section '.consol' code readable executable
+
+proc Write text
+
+	local	  output    dd ?
+	local	  Result    dd ?
+
+	invoke	  GetStdHandle,STD_OUTPUT_HANDLE
+	mov	  [output],eax
+	invoke	  lstrlen,[text]
+	invoke	  WriteConsole,[output],[text],eax,[Result],0
+	ret
+endp
+
+proc Read buffer
+
+	local	  input     dd ?
+	local	  Result    dd ?
+
+	invoke	  GetStdHandle,STD_INPUT_HANDLE
+	mov	  [input],eax
+	invoke	  ReadConsole,[input],[buffer],2,[Result],0
+	ret
+endp
+
+section '.idata' import data readable writeable
+
+  dd 0,0,0,rva kernel_name,rva kernel_table
+  dd 0,0,0,0,0
+
+  kernel_table:
+    ExitProcess dd rva _ExitProcess
+    CreateFile dd rva _CreateFileA
+    ReadFile dd rva _ReadFile
+    WriteFile dd rva _WriteFile
+    CloseHandle dd rva _CloseHandle
+    ReadConsole dd rva _ReadConsole
+    WriteConsole dd rva _WriteConsole
+    lstrlen	 dd rva _lstrlen
+    SetFilePointer dd rva _SetFilePointer
+    GetCommandLine dd rva _GetCommandLineA
+    GetEnvironmentVariable dd rva _GetEnvironmentVariable
+    GetStdHandle dd rva _GetStdHandle
+    VirtualAlloc dd rva _VirtualAlloc
+    GetTickCount dd rva _GetTickCount
+    GetSystemTime dd rva _GetSystemTime
+    GlobalMemoryStatus dd rva _GlobalMemoryStatus
+    dd 0
+
+  kernel_name db 'KERNEL32.DLL',0
+
+  _ExitProcess dw 0
+    db 'ExitProcess',0
+  _CreateFileA dw 0
+    db 'CreateFileA',0
+  _ReadFile dw 0
+    db 'ReadFile',0
+  _WriteFile dw 0
+    db 'WriteFile',0
+  _CloseHandle dw 0
+    db 'CloseHandle',0
+  _ReadConsole dw 0
+    db 'ReadConsoleA',0
+  _WriteConsole dw 0
+    db 'WriteConsoleA',0
+  _lstrlen dw 0
+    db 'lstrlen',0
+  _SetFilePointer dw 0
+    db 'SetFilePointer',0
+  _GetCommandLineA dw 0
+    db 'GetCommandLineA',0
+  _GetEnvironmentVariable dw 0
+    db 'GetEnvironmentVariableA',0
+  _GetStdHandle dw 0
+    db 'GetStdHandle',0
+  _VirtualAlloc dw 0
+    db 'VirtualAlloc',0
+  _GetTickCount dw 0
+    db 'GetTickCount',0
+  _GetSystemTime dw 0
+    db 'GetSystemTime',0
+  _GlobalMemoryStatus dw 0
+    db 'GlobalMemoryStatus',0
+
+section '.reloc' fixups data readable discardable

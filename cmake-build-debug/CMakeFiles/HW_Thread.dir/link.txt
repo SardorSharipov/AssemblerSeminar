@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/HW_Thread.dir/main.cpp.o  -o HW_Thread 

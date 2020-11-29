@@ -4,10 +4,11 @@
 #include <chrono>
 #include <cmath>
 #include <random>
+#include <omp.h>
 
 std::string *result;
 
-void WordToEncrypt(std::string word, int shiftCaesar, int i) {
+void WordToEncrypt(const std::string &word, int shiftCaesar, int i) {
     std::string en;
     for (char c : word)
         if (c != ' ')
@@ -26,30 +27,33 @@ void ThreadToCreate(const std::string &text, int threadNumber, int shiftCaesar) 
 
     auto *words = new std::string[threadNumber];
     int begin = 0;
-    int i = 0;
-    while (true) {
-        // get the task
-        std::string line = text.substr(begin, wordLength);
-        std::thread t(WordToEncrypt, line, shiftCaesar, i);
-        t.join();
+    for (int j = 0; j < threadNumber; j++) {
+        words[j] = text.substr(begin, wordLength);
         begin += wordLength;
-        ++i;
-        if (begin >= text.size()) { // no more tasks
-            break;
-        }
     }
 
+    omp_lock_t writeLock;
+    omp_init_lock(&writeLock);
+
+#pragma omp parallel for
+    for (int j = 0; j < threadNumber; j++) {
+        WordToEncrypt(words[j], shiftCaesar, j);
+
+        omp_set_lock(&writeLock);
+        std::cout << "UnEncrypted piece: " << words[j] << std::endl;
+        std::cout << "Encrypted message: ";
+        //for (int i = 0; i < threadNumber; i++)
+        std::cout << result[j] << std::endl;
+
+        auto stopTime = std::chrono::high_resolution_clock::now();
+        auto duration = stopTime - startTime;
+        std::cout << "Time spent on calculation" << threadNumber << "  => "
+                  << duration.count() * 1.0 / 10000000 << std::endl << std::endl;
+        omp_unset_lock(&writeLock);
+    }
+
+    omp_destroy_lock(&writeLock);
     delete[] words;
-
-    std::cout << "Encrypted message: ";
-    for (i = 0; i < threadNumber; i++)
-        std::cout << result[i];
-    std::cout << std::endl;
-
-    auto stopTime = std::chrono::high_resolution_clock::now();
-    auto duration = stopTime - startTime;
-    std::cout << "Time spent on calculation" << threadNumber << "  => "
-              << duration.count() * 1.0 / 10000000 << std::endl << std::endl;
 }
 
 // argv[1] - > input message;
@@ -61,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     int shiftCaesar = dist(mt);
     if (argc != 2) {
-        std::cout << "Console arguments are not accurate" << std::endl;
+        std::cout << "Input text to encrypt" << std::endl;
         return 0;
     }
 
@@ -75,8 +79,7 @@ int main(int argc, char *argv[]) {
             text += c;
     }
     std::cout << "Unencrypted message: " << text << std::endl;
-    for (int i = 0; i < sqrt(text.size()); i++)
-        ThreadToCreate(text, i + 1, shiftCaesar);
+    ThreadToCreate(text, static_cast<int>(sqrt(text.size())), shiftCaesar);
     delete[] result;
     return 0;
 }

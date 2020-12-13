@@ -1,0 +1,3 @@
+/mnt/f/Прога/Assembler/Projects/MP2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/mnt/f/Прога/Assembler/Projects/MP2/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/f/Прога/Assembler/Projects/MP2/cmake-build-debug/CMakeFiles/MP2.dir
